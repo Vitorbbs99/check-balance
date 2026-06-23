@@ -1,0 +1,67 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${DB_PORT_EXTERNAL:5433}/${DB_NAME:checkbalance_db}
+    username: ${DB_USER:checkbalance}
+    password: ${DB_PASSWORD:123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 30000
+      connection-timeout: 20000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+      operations-sorter: method
+    api-docs:
+      path: /v3/api-docs
+
+aws:
+  region: ${AWS_REGION:sa-east-1}
+  sqs:
+    endpoint: ${AWS_SQS_ENDPOINT:http://localhost:4566}
+    queue-name: ${QUEUE_NAME:transacoes-financeiras-processadas}
+
+io:
+  awspring:
+    cloud:
+      sqs:
+        listener:
+          container:
+            # Alta volumetria: Mínimo e máximo de threads (Aumente se necessário)
+            concurrency: 20-50
+            max-concurrent-messages: 500
+            max-messages-per-poll: 10
+            # DLQ (Case dê erro em uma mensagem)
+            max-attempts: 3
+            dead-letter-queue-name: transacoes-financeiras-processadas-dlq
+            # Backoff + Jitter
+            back-off:
+              delay: 2000
+              multiplier: 2
+              max-delay: 10000
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: checkbalance
