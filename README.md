@@ -8,9 +8,9 @@ API de alta performance e resiliência projetado para processar cargas de transa
 
 O desenho do sistema foi planejado para isolar a complexidade do negócio das ferramentas tecnológicas, facilitando a escalabilidade e a manutenção.
 
-* **Domain-Driven Design (DDD):** Lógica de negócio centralizada no coração do sistema (domínio).
 * **Inspirado em Arquitetura Hexagonal:** Desacoplamento estrito entre o Core Business (`dominio`) e os detalhes tecnológicos de entrada/saída (`infraestrutura`).
-* **Microsserviço** 
+* **Microsserviços**: Facilitar a manutenção e a escalabilidade.
+* **Domain-Driven Design (DDD):** Lógica de negócio centralizada no coração do sistema (domínio).
 
 ---
 
