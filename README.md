@@ -35,10 +35,6 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 * **Retries:** Mecanismo automático de até 3 tentativas (`max-attempts: 3`) antes de descartar a mensagem para a DLQ.
 * **Backoff/Jitter:** Em caso de falhas temporárias (como instabilidade no banco), o sistema aguarda um tempo progressivo e com ruído aleatório (Jitter) para reprocessar, evitando o efeito de "manada".
 
-### Decisões (Trade-offs):
-* **Sem Cache:** Descartado para garantir consistência. O usuário precisa do saldo real e atualizado em tempo real.
-* **Sem Batching na Escrita:** Processamento direto e assíncrono linha a linha para priorizar o tempo de resposta rápido individual, evitando atrasos causados pelo acúmulo de lotes.
-
 ---
 
 ## Testes (TDD)
