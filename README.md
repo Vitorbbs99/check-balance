@@ -87,7 +87,7 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 Automação via **GitHub Actions** integrada ao **AWS CodeDeploy**. Para mitigar riscos, com o **Canary Deployment**: a nova versão da API é exposta inicialmente a apenas 10% do tráfego. Caso os alarmes do Amazon CloudWatch detectem picos de erro 5xx ou anomalias na DLQ, um **Rollback Automático** é disparado.
 
 ### Diagrama para Deploy em Produção (AWS)
-![Diagrama de Deploy](diagramas/diagrama_deploy.png)
+![Diagrama de Deploy](diagramas/diagrama_deploy.jpg)
 
 ---
 
