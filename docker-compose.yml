@@ -20,8 +20,8 @@ services:
 
   localstack:
     image: localstack/localstack:3.7.2
-    hostname: localstack
-    container_name: localstack
+    hostname: localstack_checkbalance
+    container_name: localstack_checkbalance
     ports:
       - "4566:4566"
       - "4510-4559:4510-4559"
@@ -98,7 +98,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.53.0
-    container_name: prometheus
+    container_name: prometheus_checkbalance
     ports:
       - "9090:9090"
     volumes:

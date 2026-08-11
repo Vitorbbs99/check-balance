@@ -2,6 +2,13 @@
 
 API de alta performance e resiliência projetado para processar cargas de transações financeiras.
 
+![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
+
 ---
 
 ## Arquitetura e Design de Software
@@ -34,12 +41,16 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 * **Dead Letter Queue (DLQ):** Isolamento de mensagens corrompidas ou com erros crônicos na fila `transacoes-financeiras-processadas-dlq` para investigação, permitindo o posterior reprocessamento (*Redrive* para a fila principal).
 * **Retries:** Mecanismo automático de até 3 tentativas (`max-attempts: 3`) antes de descartar a mensagem para a DLQ.
 * **Backoff/Jitter:** Em caso de falhas temporárias (como instabilidade no banco), o sistema aguarda um tempo progressivo e com ruído aleatório (Jitter) para reprocessar, evitando o efeito de "manada".
+* **Connection Batch:** Processamento em lote (50) para enviá-las juntas ao servidor em uma única comunicação de rede.
+* **Circuit Breaker:** O circuito "abre" e interrompe novas requisições imediatas, evitando falhas em cascata e dando tempo para o sistema se recuperar.
+* **Idempotência:** Checagem prévia (Check-Then-Act) aplicada na regra de negócio caso haja duplicidade.
 
 ---
 
-## Testes (TDD)
+## Estratégia de testes
 
 * **Abordagem:** Test-Driven Development (TDD) focado no comportamento do domínio.
+* **Tipos:** Unitários e Integração.
 * **Ferramentas:** JUnit 5 e Mockito.
 
 ---
@@ -65,7 +76,7 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 
 ### SOLID
 * **S (Single Responsibility):** Classes com responsabilidade única (ex: SQS Consumer apenas consome, Service apenas aplica regra de negócio).
-* **O (Open/Closed):** Arquitetura baseada em microsserviços permite estender o ecossistema adicionando novos serviços sem modificar o código existente.
+* **O (Open/Closed):** O ecossistema está aberto para extensão e fechada para modificação.
 * **L (Liskov Substitution):** Herança e polimorfismo do Java, garantindo que as implementações de interfaces (como contratos de repositórios).
 * **I (Interface Segregation):** Interfaces de domínio enxutas.
 * **D (Dependency Inversion):** interface que serve ao seu modelo de domínio (Ex: public interface CountRepository extends JpaRepository<Count, String>)
@@ -74,6 +85,8 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 * **Strategy:** Utilizado para alternar dinamicamente regras de validação.
 * **Builder:** Criação de entidades e DTOs de forma imutável e legível.
 * **Singleton:** Escopo padrão dos Beans gerenciados pelo Spring Framework (Services, Repositories).
+* **Observer:** Notificar os eventos no sistema (Fila SQS).
+* **Proxy:**  O Spring cria um objeto de disfarce ao redor da classe "processIngestion" para controlar o acesso.
 
 ---
 
@@ -83,6 +96,7 @@ Para suportar a carga de 2.000 m/s sem gargalos ou degradação do ambiente:
 Automação via **GitHub Actions** integrada ao **AWS CodeDeploy**. Para mitigar riscos, com o **Canary Deployment**: a nova versão da API é exposta inicialmente a apenas 10% do tráfego. Caso os alarmes do Amazon CloudWatch detectem picos de erro 5xx ou anomalias na DLQ, um **Rollback Automático** é disparado.
 
 ### Diagrama para Deploy em Produção (AWS)
+
 ![Diagrama de Deploy](diagramas/diagrama_deploy.jpg)
 
 ---
@@ -111,7 +125,26 @@ Automação via **GitHub Actions** integrada ao **AWS CodeDeploy**. Para mitigar
 * O projeto irá rodar em: http://localhost:8080
 * Documentação Swagger: http://localhost:8080/swagger-ui/index.html
 
+## Exposição do saldo atual
+* **URL:** `/api/v1/balances/{id}`
+* **Método:** `GET`
+
+```json
+[
+  {
+    "id": "5b19c8b6-0cc4-4c72-a989-0c2ee15fa975",
+    "owner": "315e3cfe-f4af-4cd2-b298-a449e614349a",
+    "balance": {
+      "amount": 183.12,
+      "currency": "BRL"
+    },
+    "updated_at": "2025-07-05T18:04:13.433-03:00"
+  }
+]
+```
+
 ## Melhorias
-* **Circuit Breaker**: Implementar interceptador no container SQS para pausar o consumo da fila caso o banco de dados sofra quedas, evitando sobrecarga desnecessária.
+* **Cache Redis**: No saldo para reduzir latência em leitura pesada.
+* **Autenticação/autorização na API**: Proteger endpoints em produção.
 * **Multi-stage Build no Dockerfile**: Otimizar a imagem Docker para compilar o código.
 * **Grafana**: Consolidar as métricas do Prometheus.
